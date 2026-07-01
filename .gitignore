@@ -1,0 +1,80 @@
+# ==========================================
+#  Python Core & Artifact Caches
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ==========================================
+# Data, Models, & Artifact Storage
+# ==========================================
+# Exclude your local ML pipeline data & weights
+artifacts/
+data/
+models/
+*.csv
+*.h5
+*.pkl
+*.joblib
+*.json
+
+# ==========================================
+# Logging & System Diagnostics
+# ==========================================
+# Exclude runtime system logs
+logs/
+*.log
+
+# ==========================================
+# Environment & Virtual Environments
+# ==========================================
+# Exclude your isolated python dependencies folders
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ==========================================
+# Jupyter Notebook Checkpoints
+# ==========================================
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# ==========================================
+# OS Specific Garbage
+# ==========================================
+.DS_Store
+.DS_Store?
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# ==========================================
+# IDEs and Editors
+# ==========================================
+.idea/
+.vscode/
+*.swp
+*.swo

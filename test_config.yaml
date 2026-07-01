@@ -1,0 +1,9 @@
+project:
+  ticker: "AAPL"
+  start_date: "2024-01-01"
+  end_date: "2026-06-01"
+
+artifacts:
+  root_dir: "artifacts"
+  data_ingestion_dir: "artifacts/data_ingestion"
+  raw_data_file: "artifacts/data_ingestion/raw_stock_data.csv"

@@ -1,0 +1,7 @@
+yfinance
+pandas
+pyyaml
+pandas-ta
+xgboost
+scikit-learn
+-e .
