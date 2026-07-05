@@ -11,9 +11,9 @@ class DataIngestion:
 
     def __init__(
         self,
-        start_date="2015-01-01",
+        # Shifted default start to 2024 for a lightweight, modern dataset
+        start_date="2024-01-01",
         end_date=None,
-        # Updated default path to explicitly target the notebooks directory
         output_path="notebooks/artifacts/stock_data.csv"
     ):
         self.start_date = start_date
@@ -31,10 +31,11 @@ class DataIngestion:
             
             tables = pd.read_html(url, storage_options=headers)
             tickers = tables[0]["Symbol"].tolist()
-            
+
+            # Yahoo Finance adjustments (e.g., BRK.B becomes BRK-B)
             tickers = [ticker.replace(".", "-") for ticker in tickers]
 
-            logging.info(f"Downloading historical data for {len(tickers)} companies...")
+            logging.info(f"Downloading recent historical data for {len(tickers)} companies from {self.start_date}...")
 
             # Download all data in one giant multi-threaded batch
             df = yf.download(
@@ -60,9 +61,7 @@ class DataIngestion:
             final_df.columns = [col.lower() for col in final_df.columns]
             final_df.rename(columns={'ticker': 'symbol'}, inplace=True)
 
-            # Check if Python currently jumped up to the root directory
-            # If we are at the root, "notebooks/artifacts/" works perfectly.
-            # If we are inside the notebooks folder, we strip "notebooks/" out so it doesn't create "notebooks/notebooks/artifacts"
+            # Directory safety handling for running inside Notebooks vs Root terminal
             actual_output_path = self.output_path
             if os.getcwd().endswith("notebooks") and actual_output_path.startswith("notebooks/"):
                 actual_output_path = actual_output_path.replace("notebooks/", "", 1)
@@ -74,7 +73,7 @@ class DataIngestion:
             final_df.to_csv(actual_output_path, index=False)
 
             logging.info(f"Dataset shape: {final_df.shape}")
-            logging.info(f"Clean artifact safely saved to: {actual_output_path}")
+            logging.info(f"Recent data successfully saved to: {actual_output_path}")
             return final_df
 
         except Exception as e:
