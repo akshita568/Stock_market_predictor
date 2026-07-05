@@ -1,33 +1,81 @@
+import os
 import sys
-import yfinance as yf
 import pandas as pd
+import yfinance as yf
+
 from src.logging.logger import logging
 from src.exception.exception import StockPredictorException
-from src.entity.config_entity import DataIngestionConfig
+
 
 class DataIngestion:
-    def __init__(self, config: DataIngestionConfig):
-        self.config = config
 
-    def initiate_data_ingestion(self) -> str:
-        logging.info("Initiating historical stock data ingestion...")
+    def __init__(
+        self,
+        start_date="2015-01-01",
+        end_date=None,
+        # Updated default path to explicitly target the notebooks directory
+        output_path="notebooks/artifacts/stock_data.csv"
+    ):
+        self.start_date = start_date
+        self.end_date = end_date
+        self.output_path = output_path
+
+    def initiate_data_ingestion(self):
         try:
-            # Download ticker information
-            stock = yf.Ticker(self.config.ticker)
-            df = stock.history(start=self.config.start_date, end=self.config.end_date, interval="1d")
+            logging.info("Fetching S&P 500 company list from Wikipedia...")
             
-            if df.empty:
-                raise ValueError(f"Ticker history returned empty for symbol: {self.config.ticker}")
+            url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+            
+            tables = pd.read_html(url, storage_options=headers)
+            tickers = tables[0]["Symbol"].tolist()
+            
+            tickers = [ticker.replace(".", "-") for ticker in tickers]
 
-            # Save clean CSV output to directory artifact destination
-            df.reset_index(inplace=True)
-            df.columns = [col.lower() for col in df.columns]
+            logging.info(f"Downloading historical data for {len(tickers)} companies...")
+
+            # Download all data in one giant multi-threaded batch
+            df = yf.download(
+                tickers=tickers,
+                start=self.start_date,
+                end=self.end_date,
+                interval="1d",
+                auto_adjust=False,
+                threads=True,
+                progress=True
+            )
+
+            if df.empty:
+                raise Exception("Downloaded dataframe is empty.")
+
+            logging.info("Reshaping dataframe using modern pandas stacking...")
+
+            # Flatten multi-index cleanly into rows
+            final_df = df.stack(level=1, future_stack=True)
+            final_df = final_df.reset_index()
             
-            output_file = self.config.download_path
-            df.to_csv(output_file, index=False)
-            logging.info(f" Ingestion completed. Clean artifact saved to {output_file}")
+            # Sanitize headers to match standard lowercase layout
+            final_df.columns = [col.lower() for col in final_df.columns]
+            final_df.rename(columns={'ticker': 'symbol'}, inplace=True)
+
+            # Check if Python currently jumped up to the root directory
+            # If we are at the root, "notebooks/artifacts/" works perfectly.
+            # If we are inside the notebooks folder, we strip "notebooks/" out so it doesn't create "notebooks/notebooks/artifacts"
+            actual_output_path = self.output_path
+            if os.getcwd().endswith("notebooks") and actual_output_path.startswith("notebooks/"):
+                actual_output_path = actual_output_path.replace("notebooks/", "", 1)
+
+            # Ensure local artifact directory exists
+            os.makedirs(os.path.dirname(actual_output_path), exist_ok=True)
             
-            return str(output_file)
+            # Save final dataset
+            final_df.to_csv(actual_output_path, index=False)
+
+            logging.info(f"Dataset shape: {final_df.shape}")
+            logging.info(f"Clean artifact safely saved to: {actual_output_path}")
+            return final_df
 
         except Exception as e:
             raise StockPredictorException(e, sys)

@@ -4,4 +4,4 @@ pyyaml
 pandas-ta
 xgboost
 scikit-learn
--e .
+#-e .
