@@ -29,7 +29,7 @@ MANIFEST
 # ==========================================
 # Exclude your local ML pipeline data & weights
 artifacts/
-data/
+# data/
 models/
 *.csv
 *.h5
