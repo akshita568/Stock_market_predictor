@@ -29,9 +29,13 @@ MANIFEST
 # ==========================================
 # Exclude your local ML pipeline data & weights
 artifacts/
-data/
 models/
+
+# Ignore all CSVs except those in data/
 *.csv
+!data/
+!data/*.csv
+!data/download_multiple_stocks.py
 *.h5
 *.pkl
 *.joblib
